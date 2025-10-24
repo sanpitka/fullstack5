@@ -19,6 +19,15 @@ const App = () => {
     )  
   }, [])
 
+  useEffect(() => {
+    const loggedUserJSON = window.localStorage.getItem('loggedUser')
+    if (loggedUserJSON) {
+      const user = JSON.parse(loggedUserJSON)
+      setUser(user)
+      blogService.setToken(user.token)
+    }
+  }, [])
+
   const handleLogin = async event => {
     event.preventDefault()
 
@@ -42,6 +51,7 @@ const App = () => {
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedUser')
+    blogService.setToken(null)
     setUser(null)
   }
 
@@ -80,7 +90,7 @@ const App = () => {
     return (
       <div>
         <h2>add new blog</h2>
-        <form /* onSubmit = {addBlog} */>
+        <form onSubmit = {addBlog}>
           <div>
             <label>
               title:
@@ -120,6 +130,33 @@ const App = () => {
     )
   }
 
+  const addBlog = async (event) => {
+    event.preventDefault()
+    const blogObject = {
+      title: title,
+      author: author,
+      url: url
+    }
+
+    try {
+      const createdBlog = await blogService.create(blogObject)
+      setBlogs(blogs.concat(createdBlog))
+      setTitle('')
+      setAuthor('')
+      setUrl('')
+    } catch (exception) {
+      if (exception.response && exception.response.status === 401) {
+        setErrorMessage('Session expired. Please log in again.')
+        handleLogout()
+      } else {
+        setErrorMessage('Failed to add blog')
+      }
+      setTimeout(() => {
+        setErrorMessage(null)
+      }, 5000)
+    }
+  }
+
   return (
     <div>
       <h2>blogs</h2>
@@ -128,6 +165,7 @@ const App = () => {
       {user && (
         <div>
           <p>{user.name} logged in <button onClick={handleLogout}>logout</button></p>
+          {errorMessage && <div style={{color: 'red'}}>{errorMessage}</div>}
           {blogForm()}
           <div style={{marginTop: '20px'}}>
             {blogs.map(blog =>
