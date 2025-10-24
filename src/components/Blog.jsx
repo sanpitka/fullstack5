@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const Blog = ({ blog, updateBlog }) => {
+const Blog = ({ blog, updateBlog, removeBlog }) => {
   const [visible, setVisible] = useState(false)
 
   const blogStyle = {
@@ -26,6 +26,15 @@ const Blog = ({ blog, updateBlog }) => {
     updateBlog(blog.id, updatedBlog)
   }
 
+  const handleRemove = () => {
+    const confirmed = window.confirm(`Remove blog ${blog.title} by ${blog.author}?`)
+    if (confirmed) {
+      removeBlog(blog.id)
+    }
+  }
+
+  const isOwner = blog.user.username === JSON.parse(window.localStorage.getItem('loggedUser')).username
+
   return (
     <div style={blogStyle}>
       {blog.title} {blog.author} <button onClick={toggleVisibility}>{visible ? 'hide' : 'view'}</button>
@@ -40,6 +49,11 @@ const Blog = ({ blog, updateBlog }) => {
           <div>
             {blog.user.name}
           </div>
+          {isOwner && (
+            <div>
+              <button onClick={handleRemove}>remove</button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -108,6 +108,24 @@ const App = () => {
     }
   }
 
+  const removeBlog = async (id) => {
+    try {
+      await blogService.remove(id)
+      setBlogs(blogs.filter(blog => blog.id !== id))
+      setNotificationMessage(
+        `Blog removed successfully`
+      )
+      setTimeout(() => {
+        setNotificationMessage(null)
+      }, 5000)
+    } catch (error) {
+      setErrorMessage(`Error removing blog`)
+      setTimeout(() => {
+        setErrorMessage(null)
+      }, 5000)
+    }
+  }
+
   return (
     <div>
       <h2>blogs</h2>
@@ -120,9 +138,16 @@ const App = () => {
           
           {blogForm()}
           <div style={{marginTop: '20px'}}>
-            {blogs.map(blog =>
-              <Blog key={blog.id} blog={blog} updateBlog={updateBlog} />
-            ).sort((a, b) => b.props.blog.likes - a.props.blog.likes)}
+            {blogs
+              .sort((a, b) => b.likes - a.likes)
+              .map(blog =>
+              <Blog 
+                key={blog.id} 
+                blog={blog} 
+                updateBlog={updateBlog} 
+                removeBlog={removeBlog} 
+              />
+            )}
           </div>
         </div>
       )}
