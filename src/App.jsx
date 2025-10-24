@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import './index.css'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -12,6 +13,7 @@ const App = () => {
   const [author, setAuthor] = useState('')
   const [url, setUrl] = useState('')
   const [errorMessage, setErrorMessage] = useState(null) 
+  const [notificationMessage, setNotificationMessage] = useState(null)
 
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -41,8 +43,10 @@ const App = () => {
       setUser(user)
       setUsername('')
       setPassword('')
-    } catch (exception) {
-      setErrorMessage('wrong credentials')
+    } catch(error) {
+      setErrorMessage(
+        `Wrong username or password`
+      )
       setTimeout(() => {
         setErrorMessage(null)
       }, 5000)
@@ -54,6 +58,28 @@ const App = () => {
     blogService.setToken(null)
     setUser(null)
   }
+
+  const Notification = ({ notificationMessage }) => {
+  if (notificationMessage === null) {
+    return null
+  }
+  return (
+    <div className="notificationMessage">
+      {notificationMessage}
+    </div>
+  )
+}
+
+const Alert = ({ errorMessage }) => {
+  if (errorMessage === null) {
+    return null
+  }
+  return (
+    <div className="errorMessage">
+      {errorMessage}
+    </div>
+  )
+}
 
   const loginForm = () => {
     return (
@@ -144,28 +170,31 @@ const App = () => {
       setTitle('')
       setAuthor('')
       setUrl('')
-    } catch (exception) {
-      if (exception.response && exception.response.status === 401) {
-        setErrorMessage('Session expired. Please log in again.')
-        handleLogout()
-      } else {
-        setErrorMessage('Failed to add blog')
-      }
+      setNotificationMessage(
+        `A new blog '${title}' by ${author} added`
+      )
       setTimeout(() => {
-        setErrorMessage(null)
+        setNotificationMessage(null)
       }, 5000)
+    } catch (error) {
+        setErrorMessage(
+          `Remember to fill all the fields`
+        )
+        setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)
     }
   }
 
   return (
     <div>
       <h2>blogs</h2>
-
+      <Alert errorMessage ={errorMessage} />
+      <Notification notificationMessage={notificationMessage} />
       {!user && loginForm()}
       {user && (
         <div>
           <p>{user.name} logged in <button onClick={handleLogout}>logout</button></p>
-          {errorMessage && <div style={{color: 'red'}}>{errorMessage}</div>}
           {blogForm()}
           <div style={{marginTop: '20px'}}>
             {blogs.map(blog =>
