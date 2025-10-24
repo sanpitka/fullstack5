@@ -1,4 +1,4 @@
-.message {
+.notification{
   color: green;
   background: lightgreen;
   font-size: 20px;
@@ -8,7 +8,7 @@
   margin-bottom: 10px;
 }
 
-.errorMessage {
+.error {
   color: red;
   background: lightgrey;
   font-size: 20px;
