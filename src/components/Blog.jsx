@@ -33,7 +33,10 @@ const Blog = ({ blog, updateBlog, removeBlog }) => {
     }
   }
 
-  const isOwner = blog.user.username === JSON.parse(window.localStorage.getItem('loggedUser')).username
+  const loggedUser = window.localStorage.getItem('loggedUser')
+  const isOwner = loggedUser ?
+    blog.user.username === JSON.parse(loggedUser).username :
+    false
 
   return (
     <div style={blogStyle}>

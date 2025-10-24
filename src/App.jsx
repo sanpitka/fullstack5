@@ -11,7 +11,7 @@ import './index.css'
 const App = () => {
   const [blogs, setBlogs] = useState([])
   const [user, setUser] = useState(null)
-  const [errorMessage, setErrorMessage] = useState(null) 
+  const [errorMessage, setErrorMessage] = useState(null)
   const [notificationMessage, setNotificationMessage] = useState(null)
 
   const blogFormRef = useRef()
@@ -19,7 +19,7 @@ const App = () => {
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs( blogs )
-    )  
+    )
   }, [])
 
   useEffect(() => {
@@ -31,7 +31,7 @@ const App = () => {
     }
   }, [])
 
-   const loginForm = () => (
+  const loginForm = () => (
     <Togglable buttonLabel="login">
       <LoginForm handleLogin={handleLogin} />
     </Togglable>
@@ -43,12 +43,13 @@ const App = () => {
 
       window.localStorage.setItem(
         'loggedUser', JSON.stringify(user)
-      ) 
+      )
       blogService.setToken(user.token)
       setUser(user)
     } catch(error) {
+      console.error(error)
       setErrorMessage(
-        `Wrong username or password`
+        'Wrong username or password'
       )
       setTimeout(() => {
         setErrorMessage(null)
@@ -75,7 +76,7 @@ const App = () => {
       setNotificationMessage(
         `A new blog '${blogObject.title}' by ${blogObject.author} added`
       )
-      
+
       setTimeout(() => {
         setNotificationMessage(null)
       }, 5000)
@@ -83,14 +84,15 @@ const App = () => {
       blogFormRef.current.toggleVisibility()
 
     } catch (error) {
+      console.error(error)
       if (error.response?.status === 400) {
         setErrorMessage(
-          `Remember to fill all the fields`
+          'Remember to fill all the fields'
         )
       }
       setTimeout(() => {
         setErrorMessage(null)
-        }, 5000)
+      }, 5000)
     }
   }
 
@@ -99,8 +101,9 @@ const App = () => {
       const returnedBlog = await blogService.update(id, updatedBlog)
       setBlogs(blogs.map(blog => blog.id !== id ? blog : returnedBlog))
     } catch (error) {
+      console.error(error)
       setErrorMessage(
-        `Error updating blog`
+        'Error updating blog'
       )
       setTimeout(() => {
         setErrorMessage(null)
@@ -113,13 +116,14 @@ const App = () => {
       await blogService.remove(id)
       setBlogs(blogs.filter(blog => blog.id !== id))
       setNotificationMessage(
-        `Blog removed successfully`
+        'Blog removed successfully'
       )
       setTimeout(() => {
         setNotificationMessage(null)
       }, 5000)
     } catch (error) {
-      setErrorMessage(`Error removing blog`)
+      console.error(error)
+      setErrorMessage('Error removing blog')
       setTimeout(() => {
         setErrorMessage(null)
       }, 5000)
@@ -135,22 +139,22 @@ const App = () => {
       {user && (
         <div>
           <p>{user.name} logged in <button onClick={handleLogout}>logout</button></p>
-          
           {blogForm()}
-          <div style={{marginTop: '20px'}}>
-            {blogs
-              .sort((a, b) => b.likes - a.likes)
-              .map(blog =>
-              <Blog 
-                key={blog.id} 
-                blog={blog} 
-                updateBlog={updateBlog} 
-                removeBlog={removeBlog} 
-              />
-            )}
-          </div>
         </div>
       )}
+
+      <div style={{ marginTop: '20px' }}>
+        {blogs
+          .sort((a, b) => b.likes - a.likes)
+          .map(blog =>
+            <Blog
+              key={blog.id}
+              blog={blog}
+              updateBlog={updateBlog}
+              removeBlog={removeBlog}
+            />
+          )}
+      </div>
     </div>
   )
 }
