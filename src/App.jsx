@@ -122,7 +122,7 @@ const App = () => {
           <div style={{marginTop: '20px'}}>
             {blogs.map(blog =>
               <Blog key={blog.id} blog={blog} updateBlog={updateBlog} />
-            )}
+            ).sort((a, b) => b.props.blog.likes - a.props.blog.likes)}
           </div>
         </div>
       )}
