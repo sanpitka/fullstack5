@@ -85,7 +85,7 @@ test('calls addBlog with correct details when a new blog is created', async () =
   await userEvent.type(url, 'http://avatutsaajuoda.blogspot.com')
   await userEvent.click(createButton)
 
-    expect(mockAddBlog).toHaveBeenCalledTimes(1)
+  expect(mockAddBlog).toHaveBeenCalledTimes(1)
   expect(mockAddBlog).toHaveBeenCalledWith({
     title: 'Blankki-Blogi',
     author: 'Blanko',
