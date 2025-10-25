@@ -1,4 +1,5 @@
 const { test, expect, beforeEach, afterEach, describe } = require('@playwright/test')
+const { before } = require('node:test')
 
 describe('Blog app', () => {
   beforeEach(async ({ page, request }) => {
@@ -71,10 +72,26 @@ describe('Blog app', () => {
 				await page.getByRole('button', { name: 'like' }).click()
 				await expect(page.getByText('1 likes')).toBeVisible()
 			})
+			test('the user who created a blog can delete it', async ({ page }) => {
+				await page.getByRole('button', { name: 'add new blog' }).click()
+				await page.locator('input').first().fill('Taikatalvi')
+				await page.locator('input').nth(1).fill('Tove Jansson')
+				await page.locator('input').nth(2).fill('https://taikatalvi.blogspot.com')
+				await page.getByRole('button', { name: 'create' }).click()
+
+				await page.getByRole('button', { name: 'view' }).click()
+				await page.getByTestId('remove-blog').waitFor()
+				await expect(page.getByTestId('remove-blog')).toBeVisible()
+				page.waitForEvent('dialog').then(d => d.accept())
+				await page.getByRole('button', { name: 'remove' }).click()
+				await page.waitForLoadState('networkidle')
+				const blog = page.locator('.blog').filter({ hasText: 'Taikatalvi Tove Jansson' })
+				await expect(blog).toHaveCount(0)
+			})
 		})
 	})
 	describe('When not logged in', () => {
-		test('visitors can like a blog', async ({ page }) => {
+		beforeEach(async ({ page }) => {
 			await page.getByRole('button', { name: 'login' }).click()
 			await page.locator('input').first().fill('tofslan')
 			await page.locator('input[type="password"]').fill('heimuumit')
@@ -87,11 +104,17 @@ describe('Blog app', () => {
 			await page.locator('input').nth(2).fill('https://taikatalvi.blogspot.com')
 			await page.getByRole('button', { name: 'create' }).click()
 			await page.getByRole('button', { name: 'logout' }).click()
-
+		})
+		test('visitors can like a blog', async ({ page }) => {
 			await page.getByRole('button', { name: 'view' }).click()
 			await expect(page.getByText('0 likes')).toBeVisible()
 			await page.getByRole('button', { name: 'like' }).click()
 			await expect(page.getByText('1 likes')).toBeVisible()
+		})
+		test('visitors cannot delete a blog', async ({ page }) => {
+			await page.getByRole('button', { name: 'view' }).click()
+			await expect(page.getByText('Taikatalvi Tove Jansson')).toBeVisible()
+			await expect(page.getByRole('button', { name: 'remove' })).not.toBeVisible()
 		})
 	})
 })
