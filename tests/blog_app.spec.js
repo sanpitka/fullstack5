@@ -1,5 +1,4 @@
-const { test, expect, beforeEach, afterEach, describe } = require('@playwright/test')
-const { before } = require('node:test')
+const { test, expect, beforeEach, describe } = require('@playwright/test')
 
 describe('Blog app', () => {
   beforeEach(async ({ page, request }) => {
@@ -72,6 +71,7 @@ describe('Blog app', () => {
 				await page.getByRole('button', { name: 'like' }).click()
 				await expect(page.getByText('1 likes')).toBeVisible()
 			})
+
 			test('the user who created a blog can delete it', async ({ page }) => {
 				await page.getByRole('button', { name: 'add new blog' }).click()
 				await page.locator('input').first().fill('Taikatalvi')
@@ -79,13 +79,12 @@ describe('Blog app', () => {
 				await page.locator('input').nth(2).fill('https://taikatalvi.blogspot.com')
 				await page.getByRole('button', { name: 'create' }).click()
 
-				await page.getByRole('button', { name: 'view' }).click()
-				await page.getByTestId('remove-blog').waitFor()
-				await expect(page.getByTestId('remove-blog')).toBeVisible()
-				page.waitForEvent('dialog').then(d => d.accept())
-				await page.getByRole('button', { name: 'remove' }).click()
-				await page.waitForLoadState('networkidle')
 				const blog = page.locator('.blog').filter({ hasText: 'Taikatalvi Tove Jansson' })
+				await blog.getByRole('button', { name: 'view' }).click()
+				
+				page.on('dialog', dialog => dialog.accept())
+				await blog.getByRole('button', { name: 'remove' }).click()
+				
 				await expect(blog).toHaveCount(0)
 			})
 		})
@@ -115,6 +114,72 @@ describe('Blog app', () => {
 			await page.getByRole('button', { name: 'view' }).click()
 			await expect(page.getByText('Taikatalvi Tove Jansson')).toBeVisible()
 			await expect(page.getByRole('button', { name: 'remove' })).not.toBeVisible()
+		})
+	})
+	describe('Blogs are ordered by likes', () => {
+		beforeEach(async ({ page, request }) => {
+			await page.getByRole('button', { name: 'login' }).click()
+			await page.locator('input').first().fill('tofslan')
+			await page.locator('input[type="password"]').fill('heimuumit')
+			await page.getByRole('button', { name: 'login' }).click()
+			await page.waitForLoadState('networkidle')
+
+			const token = await page.evaluate(() => {
+				const user = localStorage.getItem('loggedUser')
+				return user ? JSON.parse(user).token : null
+			})
+
+			await request.post('http://localhost:3001/api/blogs', {
+				data: {
+					title: 'Taikatalvi',
+					author: 'Tove Jansson',
+					url: 'https://taikatalvi.blogspot.com',
+					likes: 2
+				},
+				headers: {
+					'Authorization': `Bearer ${token}`,
+					'Content-Type': 'application/json'
+				}
+			})
+
+			await request.post('http://localhost:3001/api/blogs', {
+				data: {
+					title: 'Muumipappa ja meri',
+					author: 'Tove Jansson', 
+					url: 'https://muumipappajameri.blogspot.com',
+					likes: 0
+				},
+				headers: {
+					'Authorization': `Bearer ${token}`,
+					'Content-Type': 'application/json'
+				}
+			})
+
+			await request.post('http://localhost:3001/api/blogs', {
+				data: {
+					title: 'Muumilaakson marraskuu',
+					author: 'Tove Jansson',
+					url: 'https://harmaata.blogspot.com',
+					likes: 3
+				},
+				headers: {
+					'Authorization': `Bearer ${token}`,
+					'Content-Type': 'application/json'
+				}
+			})
+			await page.reload()
+			await page.waitForLoadState('networkidle')
+
+		})
+		test('blogs are ordered by likes in descending order', async ({ page }) => {
+			const blogs = page.locator('.blog')
+			const firstBlog = blogs.nth(0)
+			const secondBlog = blogs.nth(1)
+			const thirdBlog = blogs.nth(2)
+
+			await expect(firstBlog).toContainText('Muumilaakson marraskuu')
+			await expect(secondBlog).toContainText('Taikatalvi')
+			await expect(thirdBlog).toContainText('Muumipappa ja meri')
 		})
 	})
 })
