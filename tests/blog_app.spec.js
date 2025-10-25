@@ -57,7 +57,19 @@ describe('Blog app', () => {
 				await page.locator('input').nth(2).fill('https://taikatalvi.blogspot.com')
 				await page.getByRole('button', { name: 'create' }).click()
 				await expect(page.getByText('Taikatalvi Tove Jansson')).toBeVisible()
-		
+			})
+
+			test('users can like a blog', async ({ page }) => {
+				await page.getByRole('button', { name: 'add new blog' }).click()
+				await page.locator('input').first().fill('Taikatalvi')
+				await page.locator('input').nth(1).fill('Tove Jansson')
+				await page.locator('input').nth(2).fill('https://taikatalvi.blogspot.com')
+				await page.getByRole('button', { name: 'create' }).click()
+
+				await page.getByRole('button', { name: 'view' }).click()
+				await expect(page.getByText('0 likes')).toBeVisible()
+				await page.getByRole('button', { name: 'like' }).click()
+				await expect(page.getByText('1 likes')).toBeVisible()
 			})
 		})
 	})
