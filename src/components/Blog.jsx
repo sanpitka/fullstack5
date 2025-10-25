@@ -26,7 +26,7 @@ const Blog = ({ blog, updateBlog, removeBlog }) => {
     updateBlog(blog.id, updatedBlog)
   }
 
-  const handleRemove = () => {
+  const handleRemove = () => { 
     const confirmed = window.confirm(`Remove blog ${blog.title} by ${blog.author}?`)
     if (confirmed) {
       removeBlog(blog.id)
@@ -39,7 +39,7 @@ const Blog = ({ blog, updateBlog, removeBlog }) => {
     false
 
   return (
-    <div style={blogStyle}>
+    <div style={blogStyle} className="blog">
       {blog.title} {blog.author} <button onClick={toggleVisibility}>{visible ? 'hide' : 'view'}</button>
       {visible && (
         <div>
